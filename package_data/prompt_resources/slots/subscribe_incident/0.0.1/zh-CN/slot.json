@@ -1,0 +1,24 @@
+{
+  "scenario_code": "subscribe_incident",
+  "version": "0.0.1",
+  "slots": [
+    {
+      "name": "subscription_condition_incident_name",
+      "required": false,
+      "description": "待订阅的故障名称列表，用于定义订阅条件。",
+      "example": "[\"eth-los\", \"光纤中断\"]",
+      "value_constraint": "必须是有效的 incident 名称列表。例如：尾纤故障，光纤中断，单板故障，光模块故障，光纤接头脏污，网元掉电，环境温度异常，业务板故障，风扇板故障，NPE到核心网路由不通，激光器老化，PWE3 QoS限速，MPLS-TP静态隧道限速，SR-TP静态隧道限速，带宽利用率过高等。",
+      "type": "list",
+      "allowed_values": null
+    },
+    {
+      "name": "subscription_condition_incident_level",
+      "required": false,
+      "description": "待订阅的故障级别列表，用于定义订阅条件。",
+      "example": "[\"critical\", \"major\"]",
+      "value_constraint": "必须是以下值中的一个或多个：critical（严重）, major（高）, minor（中）, warning（低）。",
+      "type": "list",
+      "allowed_values": ["critical", "major", "minor", "warning"]
+    }
+  ]
+}
