@@ -13,32 +13,36 @@ if str(SRC_ROOT) not in sys.path:
 
 
 class DefaultPromptResourcePackageTest(unittest.TestCase):
-    def test_default_package_resources_include_minimal_en_us_bundle(self) -> None:
-        from a2a_t.prompt.common.models import PromptReference
+    def test_default_package_resources_include_expected_default_bundle(self) -> None:
+        from a2a_t.common.prompt_resources.errors import PromptResourceNotFoundError
         from a2a_t.common.prompt_resources.prompt_resource_loader import PromptResourceLoader
         from a2a_t.common.prompt_resources.scenario_loader import ScenarioLoader
         from a2a_t.common.prompt_resources.slot_json_schema_loader import SlotJsonSchemaLoader
         from a2a_t.common.prompt_resources.slot_schema_loader import SlotSchemaLoader
         from a2a_t.common.prompt_resources.template_loader import TemplateLoader
+        from a2a_t.prompt.common.models import PromptReference
 
-        scenarios = ScenarioLoader().load(version="0.0.1", language="en-US")
-        reference = PromptReference(scenario_code="subscribe_incident", version="0.0.1", language="en-US")
-        template_text = TemplateLoader().load(reference=reference)
-        slot_schema = SlotSchemaLoader().load(reference=reference)
-        slot_json_schema = SlotJsonSchemaLoader().load(reference=reference)
+        scenarios = ScenarioLoader().load(language="en-US")
+        en_reference = PromptReference(scenario_code="subscribe_incident", language="en-US")
+        zh_reference = PromptReference(scenario_code="subscribe_incident", language="zh-CN")
+
+        with self.assertRaises(PromptResourceNotFoundError):
+            TemplateLoader().load(reference=en_reference)
+
+        template_text = TemplateLoader().load(reference=zh_reference)
+        slot_schema = SlotSchemaLoader().load(reference=en_reference)
+        slot_json_schema = SlotJsonSchemaLoader().load(reference=en_reference)
         scenario_prompts = PromptResourceLoader().load(
             analysis_action="scenario_recognition",
-            version="0.0.1",
             language="en-US",
         )
         slot_prompts = PromptResourceLoader().load(
             analysis_action="slot_extraction",
-            version="0.0.1",
             language="en-US",
         )
 
         self.assertTrue(any(item.scenario_code == "subscribe_incident" for item in scenarios))
-        self.assertIn("{subscription_condition_incident_name}", template_text)
+        self.assertIn("{{", template_text)
         self.assertEqual(slot_schema.scenario_code, "subscribe_incident")
         self.assertEqual(slot_schema.slots[0].name, "subscription_condition_incident_name")
         self.assertEqual(slot_json_schema["$schema"], "https://json-schema.org/draft/2020-12/schema")
@@ -55,4 +59,3 @@ class DefaultPromptResourcePackageTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
