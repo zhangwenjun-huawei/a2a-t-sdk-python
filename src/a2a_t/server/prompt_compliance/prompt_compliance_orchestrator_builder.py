@@ -39,7 +39,8 @@ class PromptComplianceOrchestratorBuilder:
         scenario_recognizer = self._scenario_recognizer_cls(llm_client=llm_client)
         scenario_resolver = self._scenario_resolver_cls(
             config=config.prompt,
-            resource_registry=components.resource_registry,
+            scenario_loader=components.scenario_loader,
+            prompt_resource_loader=components.prompt_resource_loader,
             scenario_recognizer=scenario_recognizer,
         )
         extractor = self._slot_extractor_cls(llm_client=llm_client)

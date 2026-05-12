@@ -4,8 +4,6 @@ from dataclasses import dataclass
 
 from a2a_t.common.prompt_resources import (
     PromptResourceLoader,
-    PromptResourceRegistry,
-    PromptResourceSource,
     ScenarioLoader,
     SlotJsonSchemaLoader,
     SlotSchemaLoader,
@@ -19,8 +17,6 @@ from a2a_t.prompt.validation.json_schema_slot_validator import JsonSchemaSlotVal
 class PromptRuntimeComponents:
     """Group the shared prompt runtime services built from configuration."""
 
-    resource_source: PromptResourceSource
-    resource_registry: PromptResourceRegistry
     scenario_loader: ScenarioLoader
     template_loader: TemplateLoader
     slot_schema_loader: SlotSchemaLoader

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from a2a_t.prompt.common.models import PromptReference
 
-from ._base import BasePromptResourceLoader
+from .local_resources import BasePromptResourceLoader
 
 
 class TemplateLoader(BasePromptResourceLoader):

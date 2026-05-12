@@ -31,9 +31,17 @@ class FakeScenarioRecognizer:
 
 
 class FakeScenarioResolver:
-    def __init__(self, *, config: PromptRuntimeConfig, resource_registry: object, scenario_recognizer: object) -> None:
+    def __init__(
+        self,
+        *,
+        config: PromptRuntimeConfig,
+        scenario_loader: object,
+        prompt_resource_loader: object,
+        scenario_recognizer: object,
+    ) -> None:
         self.config = config
-        self.resource_registry = resource_registry
+        self.scenario_loader = scenario_loader
+        self.prompt_resource_loader = prompt_resource_loader
         self.scenario_recognizer = scenario_recognizer
 
 
@@ -56,11 +64,11 @@ class PromptComplianceOrchestratorBuilderTest(unittest.TestCase):
             (),
             {
                 "guardrail": object(),
-                "resource_registry": object(),
+                "scenario_loader": object(),
+                "prompt_resource_loader": object(),
                 "template_loader": object(),
                 "slot_schema_loader": object(),
                 "slot_json_schema_loader": object(),
-                "prompt_resource_loader": object(),
                 "json_schema_slot_validator": object(),
             },
         )()
@@ -87,7 +95,8 @@ class PromptComplianceOrchestratorBuilderTest(unittest.TestCase):
         self.assertIs(runtime_builder.calls[0], config)
         self.assertIsInstance(orchestrator.kwargs["scenario_resolver"], FakeScenarioResolver)
         self.assertIs(orchestrator.kwargs["scenario_resolver"].config, config.prompt)
-        self.assertIs(orchestrator.kwargs["scenario_resolver"].resource_registry, components.resource_registry)
+        self.assertIs(orchestrator.kwargs["scenario_resolver"].scenario_loader, components.scenario_loader)
+        self.assertIs(orchestrator.kwargs["scenario_resolver"].prompt_resource_loader, components.prompt_resource_loader)
         self.assertIsInstance(orchestrator.kwargs["scenario_resolver"].scenario_recognizer, FakeScenarioRecognizer)
         self.assertIs(orchestrator.kwargs["scenario_resolver"].scenario_recognizer.llm_client, llm_client)
         self.assertIsInstance(orchestrator.kwargs["extractor"], FakeSlotExtractor)
@@ -101,11 +110,11 @@ class PromptComplianceOrchestratorBuilderTest(unittest.TestCase):
             (),
             {
                 "guardrail": object(),
-                "resource_registry": object(),
+                "scenario_loader": object(),
+                "prompt_resource_loader": object(),
                 "template_loader": object(),
                 "slot_schema_loader": object(),
                 "slot_json_schema_loader": object(),
-                "prompt_resource_loader": object(),
                 "json_schema_slot_validator": object(),
             },
         )()
@@ -132,7 +141,8 @@ class PromptComplianceOrchestratorBuilderTest(unittest.TestCase):
         self.assertEqual(runtime_builder.calls, [])
         self.assertIsInstance(orchestrator.kwargs["scenario_resolver"], FakeScenarioResolver)
         self.assertIs(orchestrator.kwargs["scenario_resolver"].config, config.prompt)
-        self.assertIs(orchestrator.kwargs["scenario_resolver"].resource_registry, components.resource_registry)
+        self.assertIs(orchestrator.kwargs["scenario_resolver"].scenario_loader, components.scenario_loader)
+        self.assertIs(orchestrator.kwargs["scenario_resolver"].prompt_resource_loader, components.prompt_resource_loader)
         self.assertIs(orchestrator.kwargs["guardrail"], components.guardrail)
         self.assertIs(orchestrator.kwargs["prompt_resource_loader"], components.prompt_resource_loader)
         self.assertIs(orchestrator.kwargs["slot_json_schema_loader"], components.slot_json_schema_loader)

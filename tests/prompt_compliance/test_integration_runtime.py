@@ -80,20 +80,19 @@ class PromptComplianceIntegrationRuntimeTest(ManagedTempDirTestCase):
             "slots/energy_saving/en-US/slot.json",
             json.dumps(
                 {
-                    "scenario_code": "energy_saving",
-                    "slots": [
-                        {
-                            "name": "site",
-                            "required": True,
-                            "description": "Site name",
-                            "example": "Site A",
-                            "value_constraint": "Must be a concrete site name.",
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "type": "object",
+                    "additionalProperties": False,
+                    "properties": {
+                        "site": {
                             "type": "string",
-                            "allowed_values": None,
-                            "range": None,
-                            "pattern": None,
+                            "description": "Site name",
+                            "examples": ["Site A"],
+                            "minLength": 1,
+                            "x-a2at-value-constraint": "Must be a concrete site name.",
                         }
-                    ],
+                    },
+                    "required": ["site"],
                 },
                 ensure_ascii=True,
             ),

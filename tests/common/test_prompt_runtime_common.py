@@ -17,7 +17,6 @@ from a2a_t.config.models import A2ATConfig, GuardrailProviderConfig, PromptCompl
 
 class CommonPromptRuntimeComponentsBuilderTest(unittest.TestCase):
     def test_common_builder_creates_shared_runtime_components_from_config(self) -> None:
-        from a2a_t.common.prompt_resources import LocalPromptResourceSource
         from a2a_t.common.prompt_runtime import PromptRuntimeComponentsBuilder
         from a2a_t.common.prompt_resources.slot_json_schema_loader import SlotJsonSchemaLoader
         from a2a_t.prompt.validation.json_schema_slot_validator import JsonSchemaSlotValidator
@@ -36,14 +35,13 @@ class CommonPromptRuntimeComponentsBuilderTest(unittest.TestCase):
 
         components = PromptRuntimeComponentsBuilder().build(config=config)
 
-        self.assertIsInstance(components.resource_source, LocalPromptResourceSource)
-        self.assertEqual(components.resource_source.root_dir, Path("./runtime-prompt-resources"))
-        self.assertIs(components.scenario_loader.source, components.resource_source)
-        self.assertIs(components.template_loader.source, components.resource_source)
-        self.assertIs(components.slot_schema_loader.source, components.resource_source)
+        self.assertFalse(hasattr(components, "resource_source"))
+        self.assertEqual(components.scenario_loader.root_dir, Path("./runtime-prompt-resources"))
+        self.assertEqual(components.template_loader.root_dir, Path("./runtime-prompt-resources"))
+        self.assertEqual(components.slot_schema_loader.root_dir, Path("./runtime-prompt-resources"))
         self.assertIsInstance(components.slot_json_schema_loader, SlotJsonSchemaLoader)
-        self.assertIs(components.slot_json_schema_loader.source, components.resource_source)
-        self.assertIs(components.prompt_resource_loader.source, components.resource_source)
+        self.assertEqual(components.slot_json_schema_loader.root_dir, Path("./runtime-prompt-resources"))
+        self.assertEqual(components.prompt_resource_loader.root_dir, Path("./runtime-prompt-resources"))
         self.assertFalse(hasattr(components, "slot_validator"))
         self.assertIsInstance(components.json_schema_slot_validator, JsonSchemaSlotValidator)
         self.assertTrue(hasattr(components.guardrail, "check"))

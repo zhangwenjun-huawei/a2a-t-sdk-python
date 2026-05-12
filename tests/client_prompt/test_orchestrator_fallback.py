@@ -16,7 +16,7 @@ if str(SRC_ROOT) not in sys.path:
 from a2a_t.llm.base import LLMResponse
 from a2a_t.config.models import PromptRuntimeConfig
 from a2a_t.prompt.analysis import ScenarioRecognizer, ScenarioResolutionOrchestrator, SlotExtractor
-from a2a_t.common.prompt_resources import PromptResourceLoader, PromptResourceRegistry, ScenarioLoader, SlotSchemaLoader, TemplateLoader
+from a2a_t.common.prompt_resources import PromptResourceLoader, ScenarioLoader, SlotSchemaLoader, TemplateLoader
 from tests.test_support import ManagedTempDirTestCase
 
 
@@ -35,7 +35,7 @@ class FakeSequencedLLMClient:
         )
 
 
-class PromptGenerationOrchestratorFallbackTest(ManagedTempDirTestCase):
+class PromptGenerationOrchestratorLanguageStrictnessTest(ManagedTempDirTestCase):
     def setUp(self) -> None:
         super().setUp()
         self.root = self.make_temp_dir("prompt_resources")
@@ -45,7 +45,7 @@ class PromptGenerationOrchestratorFallbackTest(ManagedTempDirTestCase):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content, encoding="utf-8")
 
-    def test_generate_falls_back_to_en_us_when_requested_language_resources_are_missing(self) -> None:
+    def test_generate_returns_prompt_resource_load_error_when_requested_language_resources_are_missing(self) -> None:
         self._write_resource_file(
             "scenarios/en-US/scenarios.json",
             json.dumps(
@@ -110,13 +110,6 @@ class PromptGenerationOrchestratorFallbackTest(ManagedTempDirTestCase):
 
         from a2a_t.client.prompt_generation.prompt_generation_orchestrator import PromptGenerationOrchestrator
 
-        resource_registry = PromptResourceRegistry(
-            scenario_loader=ScenarioLoader(root_dir=self.root),
-            prompt_resource_loader=PromptResourceLoader(root_dir=self.root),
-            template_loader=TemplateLoader(root_dir=self.root),
-            slot_schema_loader=SlotSchemaLoader(root_dir=self.root),
-        )
-
         orchestrator = PromptGenerationOrchestrator(
             config=PromptRuntimeConfig(language="zh-CN"),
             scenario_loader=ScenarioLoader(root_dir=self.root),
@@ -125,7 +118,8 @@ class PromptGenerationOrchestratorFallbackTest(ManagedTempDirTestCase):
             slot_schema_loader=SlotSchemaLoader(root_dir=self.root),
             scenario_resolver=ScenarioResolutionOrchestrator(
                 config=PromptRuntimeConfig(language="zh-CN"),
-                resource_registry=resource_registry,
+                scenario_loader=ScenarioLoader(root_dir=self.root),
+                prompt_resource_loader=PromptResourceLoader(root_dir=self.root),
                 scenario_recognizer=ScenarioRecognizer(llm_client=llm_client),
             ),
             slot_extractor=SlotExtractor(llm_client=llm_client),
@@ -133,11 +127,11 @@ class PromptGenerationOrchestratorFallbackTest(ManagedTempDirTestCase):
 
         result = orchestrator.generate("Analyze Site A.")
 
-        self.assertTrue(result.success)
-        self.assertEqual(result.prompt_text, "Site: Site A\nNotes: ")
-        self.assertIsNone(result.failure)
+        self.assertFalse(result.success)
+        self.assertEqual(result.failure.code, "prompt_resource_load_error")
+        self.assertEqual(result.failure.stage, "generation")
 
-    def test_generate_returns_template_not_found_when_template_is_missing_after_fallback(self) -> None:
+    def test_generate_returns_prompt_resource_load_error_when_scenario_prompts_are_missing_for_requested_language(self) -> None:
         self._write_resource_file(
             "scenarios/en-US/scenarios.json",
             json.dumps(
@@ -163,13 +157,6 @@ class PromptGenerationOrchestratorFallbackTest(ManagedTempDirTestCase):
 
         from a2a_t.client.prompt_generation.prompt_generation_orchestrator import PromptGenerationOrchestrator
 
-        resource_registry = PromptResourceRegistry(
-            scenario_loader=ScenarioLoader(root_dir=self.root),
-            prompt_resource_loader=PromptResourceLoader(root_dir=self.root),
-            template_loader=TemplateLoader(root_dir=self.root),
-            slot_schema_loader=SlotSchemaLoader(root_dir=self.root),
-        )
-
         orchestrator = PromptGenerationOrchestrator(
             config=PromptRuntimeConfig(language="zh-CN"),
             scenario_loader=ScenarioLoader(root_dir=self.root),
@@ -178,7 +165,8 @@ class PromptGenerationOrchestratorFallbackTest(ManagedTempDirTestCase):
             slot_schema_loader=SlotSchemaLoader(root_dir=self.root),
             scenario_resolver=ScenarioResolutionOrchestrator(
                 config=PromptRuntimeConfig(language="zh-CN"),
-                resource_registry=resource_registry,
+                scenario_loader=ScenarioLoader(root_dir=self.root),
+                prompt_resource_loader=PromptResourceLoader(root_dir=self.root),
                 scenario_recognizer=ScenarioRecognizer(llm_client=llm_client),
             ),
             slot_extractor=SlotExtractor(llm_client=llm_client),
@@ -187,7 +175,7 @@ class PromptGenerationOrchestratorFallbackTest(ManagedTempDirTestCase):
         result = orchestrator.generate("Analyze Site A.")
 
         self.assertFalse(result.success)
-        self.assertEqual(result.failure.code, "template_not_found")
+        self.assertEqual(result.failure.code, "prompt_resource_load_error")
         self.assertEqual(result.failure.stage, "generation")
 
 

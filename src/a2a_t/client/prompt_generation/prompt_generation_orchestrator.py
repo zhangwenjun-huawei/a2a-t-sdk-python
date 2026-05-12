@@ -7,7 +7,6 @@ from a2a_t.config.models import PromptRuntimeConfig
 from a2a_t.common.prompt_resources import (
     PromptResourceNotFoundError,
     PromptResourceParseError,
-    PromptResourceRegistry,
 )
 from a2a_t.prompt.analysis import ScenarioResolutionOrchestrator
 from a2a_t.prompt.analysis.errors import PromptAnalysisError
@@ -49,7 +48,6 @@ class PromptGenerationOrchestrator:
         slot_schema_loader: Any,
         scenario_resolver: ScenarioResolutionOrchestrator,
         slot_extractor: Any,
-        resource_registry: PromptResourceRegistry | None = None,
         input_normalizer: InputNormalizer | None = None,
         renderer: TaskPromptRenderer | None = None,
         logger: Any | None = None,
@@ -57,14 +55,11 @@ class PromptGenerationOrchestrator:
         if not isinstance(config, PromptRuntimeConfig):
             raise TypeError("config must be a PromptRuntimeConfig instance.")
         self._config = config
+        self._prompt_resource_loader = prompt_resource_loader
+        self._template_loader = template_loader
+        self._slot_schema_loader = slot_schema_loader
         self._scenario_resolver = scenario_resolver
         self._slot_extractor = slot_extractor
-        self._resource_registry = resource_registry or PromptResourceRegistry(
-            scenario_loader=scenario_loader,
-            prompt_resource_loader=prompt_resource_loader,
-            template_loader=template_loader,
-            slot_schema_loader=slot_schema_loader,
-        )
         self._input_normalizer = input_normalizer or InputNormalizer()
         self._renderer = renderer or TaskPromptRenderer()
         self._logger = logger or globals()["logger"]
@@ -187,10 +182,17 @@ class PromptGenerationOrchestrator:
     ) -> tuple[str, Any, Any, Any]:
         """Load generation resources and specialize missing-resource failures by artifact type."""
         try:
-            resolved_reference, template_text, slot_schema, slot_prompts = self._resource_registry.load_generation_resources(
-                reference=reference
+            template_text = self._template_loader.load(
+                reference=reference,
             )
-            return resolved_reference.language, template_text, slot_schema, slot_prompts
+            slot_schema = self._slot_schema_loader.load(
+                reference=reference,
+            )
+            slot_prompts = self._prompt_resource_loader.load(
+                analysis_action="slot_extraction",
+                language=reference.language,
+            )
+            return reference.language, template_text, slot_schema, slot_prompts
         except _PromptGenerationResourceFailure:
             raise
         except PromptResourceNotFoundError as error:
