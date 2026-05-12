@@ -31,9 +31,17 @@ class FakeScenarioRecognizer:
 
 
 class FakeScenarioResolver:
-    def __init__(self, *, config: PromptRuntimeConfig, resource_registry: object, scenario_recognizer: object) -> None:
+    def __init__(
+        self,
+        *,
+        config: PromptRuntimeConfig,
+        scenario_loader: object,
+        prompt_resource_loader: object,
+        scenario_recognizer: object,
+    ) -> None:
         self.config = config
-        self.resource_registry = resource_registry
+        self.scenario_loader = scenario_loader
+        self.prompt_resource_loader = prompt_resource_loader
         self.scenario_recognizer = scenario_recognizer
 
 
@@ -59,7 +67,6 @@ class PromptGenerationOrchestratorBuilderTest(unittest.TestCase):
                 "prompt_resource_loader": object(),
                 "template_loader": object(),
                 "slot_schema_loader": object(),
-                "resource_registry": object(),
             },
         )()
         runtime_builder = FakeRuntimeComponentsBuilder(components)
@@ -87,7 +94,8 @@ class PromptGenerationOrchestratorBuilderTest(unittest.TestCase):
         self.assertEqual(orchestrator.kwargs["config"].local_root_dir, "./default-root")
         self.assertIsInstance(orchestrator.kwargs["scenario_resolver"], FakeScenarioResolver)
         self.assertIs(orchestrator.kwargs["scenario_resolver"].config, config.prompt)
-        self.assertIs(orchestrator.kwargs["scenario_resolver"].resource_registry, components.resource_registry)
+        self.assertIs(orchestrator.kwargs["scenario_resolver"].scenario_loader, components.scenario_loader)
+        self.assertIs(orchestrator.kwargs["scenario_resolver"].prompt_resource_loader, components.prompt_resource_loader)
         self.assertIsInstance(orchestrator.kwargs["scenario_resolver"].scenario_recognizer, FakeScenarioRecognizer)
         self.assertIs(orchestrator.kwargs["scenario_resolver"].scenario_recognizer.llm_client, llm_client)
         self.assertIsInstance(orchestrator.kwargs["slot_extractor"], FakeSlotExtractor)

@@ -25,19 +25,25 @@ class ScenarioResolutionOrchestrator:
         self,
         *,
         config: PromptRuntimeConfig,
-        resource_registry: Any,
+        scenario_loader: Any,
+        prompt_resource_loader: Any,
         scenario_recognizer: Any,
     ) -> None:
         if not isinstance(config, PromptRuntimeConfig):
             raise TypeError("config must be a PromptRuntimeConfig instance.")
         self._config = config
-        self._resource_registry = resource_registry
+        self._scenario_loader = scenario_loader
+        self._prompt_resource_loader = prompt_resource_loader
         self._scenario_recognizer = scenario_recognizer
 
     def resolve(self, normalized_input: str) -> ScenarioResolutionResult:
         """Return a resolved prompt reference or a standardized failure."""
         try:
-            resolved_language, scenarios, scenario_prompts = self._resource_registry.load_scenario_resources(
+            scenarios = self._scenario_loader.load(
+                language=self._config.language,
+            )
+            scenario_prompts = self._prompt_resource_loader.load(
+                analysis_action="scenario_recognition",
                 language=self._config.language,
             )
         except PromptResourceNotFoundError as error:
@@ -51,7 +57,7 @@ class ScenarioResolutionOrchestrator:
             recognition_result = self._scenario_recognizer.recognize(
                 normalized_input=normalized_input,
                 scenarios=scenarios,
-                language=resolved_language,
+                language=self._config.language,
                 system_prompt=scenario_prompts.system_prompt,
                 user_prompt=scenario_prompts.user_prompt,
             )
@@ -73,7 +79,7 @@ class ScenarioResolutionOrchestrator:
                     success=True,
                     reference=PromptReference(
                         scenario_code=scenario.scenario_code,
-                        language=resolved_language,
+                        language=self._config.language,
                     ),
                     scenario=scenario,
                 )

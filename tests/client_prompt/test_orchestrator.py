@@ -149,27 +149,6 @@ class FakeRenderer:
         raise self._error
 
 
-class FakeResourceRegistry:
-    def __init__(
-        self,
-        *,
-        scenario_result: object | None = None,
-        generation_result: object | None = None,
-    ) -> None:
-        self._scenario_result = scenario_result
-        self._generation_result = generation_result
-
-    def load_scenario_resources(self, *, language: str) -> object:
-        if isinstance(self._scenario_result, Exception):
-            raise self._scenario_result
-        return self._scenario_result
-
-    def load_generation_resources(self, *, reference: PromptReference) -> object:
-        if isinstance(self._generation_result, Exception):
-            raise self._generation_result
-        return self._generation_result
-
-
 class FakePromptRuntimeConfig(PromptRuntimeConfig):
     __slots__ = ("prompt_generation_debug",)
 
@@ -210,7 +189,9 @@ class PromptGenerationOrchestratorTest(unittest.TestCase):
         *,
         scenario_result: ScenarioResolutionResult,
         extraction_result: SlotExtractionResult,
-        resource_registry: FakeResourceRegistry | None = None,
+        template_loader: FakeTemplateLoader | None = None,
+        slot_schema_loader: FakeSlotSchemaLoader | None = None,
+        prompt_resource_loader: FakePromptResourceLoader | None = None,
         debug_enabled: bool = False,
         logger: FakeLogger | None = None,
         slot_extractor: object | None = None,
@@ -218,8 +199,9 @@ class PromptGenerationOrchestratorTest(unittest.TestCase):
     ):
         from a2a_t.client.prompt_generation.prompt_generation_orchestrator import PromptGenerationOrchestrator
 
-        self.template_loader = FakeTemplateLoader()
-        self.slot_schema_loader = FakeSlotSchemaLoader()
+        self.template_loader = template_loader or FakeTemplateLoader()
+        self.slot_schema_loader = slot_schema_loader or FakeSlotSchemaLoader()
+        self.prompt_resource_loader = prompt_resource_loader or FakePromptResourceLoader()
         self.slot_extractor = slot_extractor or FakeSlotExtractor(extraction_result)
         self.logger = logger or FakeLogger()
 
@@ -229,12 +211,11 @@ class PromptGenerationOrchestratorTest(unittest.TestCase):
                 prompt_generation_debug=debug_enabled,
             ),
             scenario_loader=FakeScenarioLoader(),
-            prompt_resource_loader=FakePromptResourceLoader(),
+            prompt_resource_loader=self.prompt_resource_loader,
             template_loader=self.template_loader,
             slot_schema_loader=self.slot_schema_loader,
             scenario_resolver=FakeScenarioResolver(scenario_result),
             slot_extractor=self.slot_extractor,
-            resource_registry=resource_registry,
             renderer=renderer,
             logger=self.logger,
         )
@@ -388,10 +369,15 @@ class PromptGenerationOrchestratorTest(unittest.TestCase):
                 slots={"site": "Site A", "additional_notes": None},
                 slot_errors=[],
             ),
-            resource_registry=FakeResourceRegistry(
-                generation_result=PromptSourceError("generation resource path escapes local root"),
-            ),
+            template_loader=FakeTemplateLoader(),
+            slot_schema_loader=FakeSlotSchemaLoader(),
+            prompt_resource_loader=FakePromptResourceLoader(),
         )
+
+        def raising_load(*, reference: PromptReference) -> str:
+            raise PromptSourceError("generation resource path escapes local root")
+
+        orchestrator._template_loader.load = raising_load  # type: ignore[method-assign]
 
         result = orchestrator.generate("Analyze Site A energy usage.")
 

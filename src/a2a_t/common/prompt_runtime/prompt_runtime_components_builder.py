@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import logging
+from pathlib import Path
+
 from a2a_t.common.prompt_resources import (
-    LocalPromptResourceSource,
     PromptResourceLoader,
-    PromptResourceRegistry,
     ScenarioLoader,
     SlotJsonSchemaLoader,
     SlotSchemaLoader,
@@ -15,6 +16,9 @@ from a2a_t.prompt.validation import JsonSchemaSlotValidator, SafetyGuardrailFact
 from .prompt_runtime_components import PromptRuntimeComponents
 
 
+logger = logging.getLogger(__name__)
+
+
 class PromptRuntimeComponentsBuilder:
     """Build the shared prompt runtime services used by client and server flows."""
 
@@ -24,30 +28,16 @@ class PromptRuntimeComponentsBuilder:
         if prompt_config.source_type != "local_file":
             raise ValueError(f"Unsupported prompt resource source_type: {prompt_config.source_type}")
 
-        # All prompt resources currently resolve from the same local root so downstream
-        # components observe identical fallback and error behavior.
-        resource_source = LocalPromptResourceSource(
-            root_dir=prompt_config.local_root_dir,
-            cache=None,
-        )
-        scenario_loader = ScenarioLoader(source=resource_source)
-        template_loader = TemplateLoader(source=resource_source)
-        slot_schema_loader = SlotSchemaLoader(source=resource_source)
-        slot_json_schema_loader = SlotJsonSchemaLoader(source=resource_source)
-        prompt_resource_loader = PromptResourceLoader(source=resource_source)
-        resource_registry = PromptResourceRegistry(
-            source=resource_source,
-            scenario_loader=scenario_loader,
-            prompt_resource_loader=prompt_resource_loader,
-            template_loader=template_loader,
-            slot_schema_loader=slot_schema_loader,
-        )
+        scenario_loader = ScenarioLoader(root_dir=prompt_config.local_root_dir)
+        template_loader = TemplateLoader(root_dir=prompt_config.local_root_dir)
+        slot_schema_loader = SlotSchemaLoader(root_dir=prompt_config.local_root_dir)
+        slot_json_schema_loader = SlotJsonSchemaLoader(root_dir=prompt_config.local_root_dir)
+        self._warn_if_custom_prompts_dir_exists(prompt_config.local_root_dir)
+        prompt_resource_loader = PromptResourceLoader()
         json_schema_slot_validator = JsonSchemaSlotValidator()
         guardrail = SafetyGuardrailFactory.create(config.prompt_compliance.guardrail)
 
         return PromptRuntimeComponents(
-            resource_source=resource_source,
-            resource_registry=resource_registry,
             scenario_loader=scenario_loader,
             template_loader=template_loader,
             slot_schema_loader=slot_schema_loader,
@@ -56,3 +46,17 @@ class PromptRuntimeComponentsBuilder:
             json_schema_slot_validator=json_schema_slot_validator,
             guardrail=guardrail,
         )
+
+    def _warn_if_custom_prompts_dir_exists(self, local_root_dir: str) -> None:
+        """Warn once per build when a custom root contains ignored prompts resources."""
+        local_root = Path(local_root_dir).resolve()
+        packaged_root = PromptResourceLoader().root_dir.resolve()
+        if local_root == packaged_root:
+            return
+
+        prompts_dir = local_root / "prompts"
+        if prompts_dir.is_dir():
+            logger.warning(
+                "Custom prompt resource directory contains prompts/, but SDK packaged prompts will be used instead. ignored_dir=%s",
+                prompts_dir,
+            )

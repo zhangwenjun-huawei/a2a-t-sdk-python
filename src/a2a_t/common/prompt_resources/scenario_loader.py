@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ._base import BasePromptResourceLoader
+from .local_resources import BasePromptResourceLoader
 from .models import ScenarioDefinition
 
 
