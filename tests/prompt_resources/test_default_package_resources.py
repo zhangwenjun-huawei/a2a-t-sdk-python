@@ -22,7 +22,7 @@ class DefaultPromptResourcePackageTest(unittest.TestCase):
         from a2a_t.common.prompt_resources.template_loader import TemplateLoader
         from a2a_t.prompt.common.models import PromptReference
 
-        scenarios = ScenarioLoader().load(language="en-US")
+        scenarios = ScenarioLoader().load(language="zh-CN")
         en_reference = PromptReference(scenario_code="subscribe_incident", language="en-US")
         zh_reference = PromptReference(scenario_code="subscribe_incident", language="zh-CN")
 

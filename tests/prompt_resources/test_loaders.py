@@ -155,7 +155,7 @@ class PromptResourceLoaderTest(ManagedTempDirTestCase):
         self.assertFalse(slot_schema.slots[1].required)
         self.assertEqual(slot_schema.slots[1].allowed_values, ["critical", "major"])
 
-    def test_generation_loaders_fail_when_requested_language_resources_are_missing(self) -> None:
+    def test_generation_loaders_fall_back_to_packaged_defaults_when_requested_language_resources_are_missing(self) -> None:
         self._write_text("templates/energy_saving/en-US/template.md", "Site: {site}\n")
         self._write_text("prompts/slot_extraction/en-US/system.md", "Extract slots.")
         self._write_text("prompts/slot_extraction/en-US/user.md", "Return slots.")
@@ -179,19 +179,21 @@ class PromptResourceLoaderTest(ManagedTempDirTestCase):
             },
         )
 
-        from a2a_t.common.prompt_resources.errors import PromptResourceNotFoundError
         from a2a_t.common.prompt_resources.prompt_resource_loader import PromptResourceLoader
         from a2a_t.common.prompt_resources.slot_schema_loader import SlotSchemaLoader
         from a2a_t.common.prompt_resources.template_loader import TemplateLoader
 
-        with self.assertRaises(PromptResourceNotFoundError):
-            TemplateLoader(root_dir=self.root).load(
-                reference=PromptReference(scenario_code="energy_saving", language="zh-CN")
-            )
-        with self.assertRaises(PromptResourceNotFoundError):
-            SlotSchemaLoader(root_dir=self.root).load(
-                reference=PromptReference(scenario_code="energy_saving", language="zh-CN")
-            )
+        template_text = TemplateLoader(root_dir=self.root).load(
+            reference=PromptReference(scenario_code="energy_saving", language="zh-CN")
+        )
+        slot_schema = SlotSchemaLoader(root_dir=self.root).load(
+            reference=PromptReference(scenario_code="energy_saving", language="zh-CN")
+        )
+        self.assertIn("任务类型", template_text)
+        self.assertEqual(slot_schema.scenario_code, "energy_saving")
+
+        from a2a_t.common.prompt_resources.errors import PromptResourceNotFoundError
+
         with self.assertRaises(PromptResourceNotFoundError):
             PromptResourceLoader(root_dir=self.root).load(
                 analysis_action="slot_extraction",
