@@ -3,8 +3,8 @@
     {
       "scenario_code": "subscribe_incident",
       "scenario_name": "Incident 事件订阅",
-      "description": "用于生成电信网管系统中 incident 事件订阅的 A2A-T 任务请求。",
-      "example": "订阅基站设备产生的 critical 级别告警事件。"
+      "description": "用于生成电信网管系统中的 Incident 事件订阅类 A2A-T 任务请求，围绕网络侧故障、告警或 Incident 通知的订阅目标、订阅条件和上报方式进行描述。",
+      "example": "帮我生成一个 Incident 订阅任务：订阅基站设备的光纤中断和尾纤故障，只看 critical 和 high，通过 DataPart 上报。"
     },
     {
       "scenario_code": "energy_saving",
