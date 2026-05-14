@@ -6,7 +6,7 @@ import tomllib
 
 from a2a_t import __version__
 
-EXPECTED_VERSION = "0.1.3"
+EXPECTED_VERSION = "0.1.4"
 
 
 def test_package_version_matches_release_version() -> None:

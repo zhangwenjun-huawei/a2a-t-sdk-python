@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Mapping
 
+from a2a_t.common.resource_roots import resolve_prompt_resource_root
 from a2a_t.config.source import DotEnvConfigSource
 
 
@@ -25,7 +26,12 @@ def _parse_float(raw_value: str | None, default: float) -> float:
 
 def _default_prompt_resource_root_dir() -> str:
     """Return the packaged prompt resource root directory."""
-    return str((Path(__file__).resolve().parents[3] / "package_data" / "prompt_resources").resolve())
+    return str(
+        resolve_prompt_resource_root(
+            module_file=__file__,
+            source_parent_depth=3,
+        ).resolve()
+    )
 
 
 def _resolve_prompt_resource_root_dir(raw_value: str | None, *, base_dir: Path | None = None) -> str:
