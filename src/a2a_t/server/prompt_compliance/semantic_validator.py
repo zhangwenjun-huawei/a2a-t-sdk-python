@@ -20,17 +20,3 @@ class SemanticSlotValidator(Protocol):
         extracted_slots: dict[str, str | None],
     ) -> SemanticValidationResult:
         ...
-
-
-class NoopSemanticSlotValidator:
-    def validate(
-        self,
-        *,
-        processed_prompt_text: str,
-        reference: PromptReference,
-        template_text: str,
-        slot_schema: SlotSchema,
-        slot_json_schema: dict[str, object],
-        extracted_slots: dict[str, str | None],
-    ) -> SemanticValidationResult:
-        return SemanticValidationResult(passed=True, errors=[])
