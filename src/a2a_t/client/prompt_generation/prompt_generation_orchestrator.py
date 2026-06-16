@@ -10,6 +10,7 @@ from a2a_t.common.prompt_resources import (
 )
 from a2a_t.prompt.analysis import ScenarioResolutionOrchestrator
 from a2a_t.prompt.analysis.errors import PromptAnalysisError
+from a2a_t.prompt.analysis.scenario_resolution_orchestrator import PREPARATION_STAGE
 from a2a_t.prompt.common.errors import PromptSourceError
 from a2a_t.prompt.task_rendering import TaskPromptRenderError, TaskPromptRenderer
 
@@ -87,7 +88,11 @@ class PromptGenerationOrchestrator:
             return self._failure_result(
                 code=failure.code if failure is not None else SCENARIO_PARSE_FAILED,
                 message=failure.message if failure is not None else "Scenario recognition failed.",
-                stage=failure.stage if failure is not None else SCENARIO_STAGE,
+                stage=(
+                    GENERATION_STAGE
+                    if failure is not None and failure.stage == PREPARATION_STAGE
+                    else failure.stage if failure is not None else SCENARIO_STAGE
+                ),
             )
         reference = scenario_resolution.reference
         scenario = scenario_resolution.scenario
