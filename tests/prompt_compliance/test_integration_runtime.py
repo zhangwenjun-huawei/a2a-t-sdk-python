@@ -21,7 +21,6 @@ from a2a_t.llm.base import LLMResponse
 from a2a_t.prompt.analysis import SlotExtractor
 from a2a_t.prompt.analysis.models import ScenarioResolutionResult
 from a2a_t.prompt.common.models import PromptReference
-from a2a_t.prompt.validation import GuardrailResult
 from a2a_t.prompt.validation.json_schema_slot_validator import JsonSchemaSlotValidator
 from a2a_t.server.a2at_server import A2ATServer
 from a2a_t.server.prompt_compliance.prompt_compliance_orchestrator import PromptComplianceOrchestrator
@@ -39,11 +38,6 @@ class FakeSequencedLLMClient:
             usage={},
             metadata={},
         )
-
-
-class FakeGuardrail:
-    def check(self, prompt_text: str, context: dict[str, object] | None = None) -> GuardrailResult:
-        return GuardrailResult(passed=True, error_code=None, error_message=None)
 
 
 class FakeScenarioResolver:
@@ -99,7 +93,6 @@ class PromptComplianceIntegrationRuntimeTest(ManagedTempDirTestCase):
         )
 
         service = PromptComplianceOrchestrator(
-            guardrail=FakeGuardrail(),
             scenario_resolver=FakeScenarioResolver(
                 ScenarioResolutionResult(
                     success=True,
@@ -163,7 +156,6 @@ class PromptComplianceIntegrationRuntimeTest(ManagedTempDirTestCase):
         )
 
         service = PromptComplianceOrchestrator(
-            guardrail=FakeGuardrail(),
             scenario_resolver=FakeScenarioResolver(
                 ScenarioResolutionResult(
                     success=True,
@@ -243,7 +235,6 @@ class PromptComplianceIntegrationRuntimeTest(ManagedTempDirTestCase):
         )
 
         service = PromptComplianceOrchestrator(
-            guardrail=FakeGuardrail(),
             scenario_resolver=FakeScenarioResolver(
                 ScenarioResolutionResult(
                     success=True,

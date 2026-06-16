@@ -121,9 +121,9 @@ class NegotiationTypesTest(unittest.TestCase):
             PromptComplianceResult(
                 success=False,
                 failure={
-                    "code": "guardrail_rejected",
-                    "message": "Guardrail rejected the task prompt.",
-                    "stage": "guardrail",
+                    "code": "processed_prompt_parse_error",
+                    "message": "Task prompt metadata is invalid.",
+                    "stage": "prompt_parse",
                 },
             )
         )
@@ -140,7 +140,7 @@ class NegotiationTypesTest(unittest.TestCase):
 
         self.assertTrue(result.need_response)
         self.assertEqual(result.facts, {})
-        self.assertEqual(result.message, "Guardrail rejected the task prompt.")
+        self.assertEqual(result.message, "Task prompt metadata is invalid.")
 
     def test_information_type_render_continue_returns_final_task_prompt_when_agreed(self) -> None:
         from a2a_t.negotiation.common.enums import NegotiationStatus
