@@ -54,6 +54,7 @@ class ServerNegotiationOrchestratorBuilder:
             config=config,
             llm_client=llm_client,
             runtime_components=components,
+            logger=logger,
         )
         prompt_renderer = self._prompt_renderer_cls()
         store = self._build_store(env_path=env_path, logger=logger)
@@ -71,6 +72,7 @@ class ServerNegotiationOrchestratorBuilder:
         )
         return self._orchestrator_cls(
             handler=handler,
+            logger=logger,
         )
 
     def _build_store(self, *, env_path: str | Path | None, logger: Any | None) -> object:
