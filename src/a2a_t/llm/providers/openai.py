@@ -9,6 +9,7 @@ from openai import OpenAI
 
 from a2a_t.llm.errors import LLMConfigError, LLMRuntimeError
 from a2a_t.llm.models import LLMClientConfig, LLMResponse
+from a2a_t.llm.provider import LLMClient
 
 _JSON_MODE_INSTRUCTION_DEFAULT = (
     "Return a valid JSON object string. "
@@ -18,7 +19,7 @@ _JSON_MODE_INSTRUCTION_DEFAULT = (
 )
 
 
-class OpenAICompatibleClient:
+class OpenAIClient(LLMClient):
     """LLM client for providers exposing an OpenAI-compatible chat API."""
 
     def __init__(self, config: LLMClientConfig, logger: Any | None = None) -> None:

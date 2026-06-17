@@ -36,7 +36,7 @@ def build_config(provider: str = "deepseek", base_url: str | None = None) -> LLM
     )
 
 
-class OpenAICompatibleClientTest(unittest.TestCase):
+class OpenAIClientTest(unittest.TestCase):
     def setUp(self) -> None:
         self.original_clients = dict(LLMClientFactory._clients)
         self.original_client_defaults = dict(LLMClientFactory._client_defaults)
@@ -46,14 +46,15 @@ class OpenAICompatibleClientTest(unittest.TestCase):
         LLMClientFactory._client_defaults = self.original_client_defaults
 
     @patch("a2a_t.llm.providers.openai.OpenAI")
-    def test_factory_creates_deepseek_as_openai_compatible_client(self, openai_cls: Mock) -> None:
+    def test_factory_creates_registered_openai_client(self, openai_cls: Mock) -> None:
         openai_cls.return_value = Mock()
 
-        client = LLMClientFactory.create("deepseek", build_config())
+        from a2a_t.llm.providers.openai import OpenAIClient
 
-        from a2a_t.llm.providers.openai import OpenAICompatibleClient
+        LLMClientFactory.register("deepseek", OpenAIClient)
+        client = LLMClientFactory.create("deepseek", build_config(base_url="https://api.deepseek.com"))
 
-        self.assertIsInstance(client, OpenAICompatibleClient)
+        self.assertIsInstance(client, OpenAIClient)
         self.assertIsInstance(client, LLMClient)
         openai_cls.assert_called_once_with(
             api_key="deepseek-key",
@@ -71,9 +72,9 @@ class OpenAICompatibleClientTest(unittest.TestCase):
         )
         openai_cls.return_value = sdk_client
 
-        from a2a_t.llm.providers.openai import OpenAICompatibleClient
+        from a2a_t.llm.providers.openai import OpenAIClient
 
-        client = OpenAICompatibleClient(build_config(base_url="https://custom.example/v1"))
+        client = OpenAIClient(build_config(base_url="https://custom.example/v1"))
         json_schema = {
             "type": "object",
             "properties": {"device_type": {"type": "string"}},
@@ -116,9 +117,9 @@ class OpenAICompatibleClientTest(unittest.TestCase):
         )
         openai_cls.return_value = sdk_client
 
-        from a2a_t.llm.providers.openai import OpenAICompatibleClient
+        from a2a_t.llm.providers.openai import OpenAIClient
 
-        client = OpenAICompatibleClient(build_config())
+        client = OpenAIClient(build_config())
 
         with self.assertRaises(LLMRuntimeError):
             client.structured(messages=[{"role": "user", "content": "extract"}], json_schema={"type": "object"})

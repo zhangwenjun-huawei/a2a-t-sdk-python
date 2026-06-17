@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from importlib import import_module
-from typing import Any, cast
+from typing import Any
 
 from a2a_t.llm.errors import LLMConfigError
 from a2a_t.llm.models import LLMClientConfig
@@ -14,15 +13,7 @@ class LLMClientFactory:
     """Registry and factory for provider-facing LLM clients."""
 
     _clients: dict[str, type[LLMClient]] = {}
-    _client_imports: dict[str, tuple[str, str]] = {
-        "deepseek": ("a2a_t.llm.providers.openai", "OpenAICompatibleClient"),
-    }
-    _client_defaults: dict[str, dict[str, Any]] = {
-        "deepseek": {
-            "provider": "deepseek",
-            "base_url": "https://api.deepseek.com",
-        }
-    }
+    _client_defaults: dict[str, dict[str, Any]] = {}
 
     @classmethod
     def register(cls, provider: str, client_class: type[LLMClient]) -> None:
@@ -43,25 +34,12 @@ class LLMClientFactory:
         """Create an LLM client for a registered provider."""
         normalized_provider = cls._normalize_provider(provider)
         client_class = cls._resolve(normalized_provider)
-        resolved_config = cls._apply_client_defaults(normalized_provider, config)
-        return client_class(resolved_config, logger=logger)
+        return client_class(config, logger=logger)
 
     @classmethod
     def available_providers(cls) -> list[str]:
-        """List built-in and registered provider names."""
-        return sorted({*cls._client_imports.keys(), *cls._client_defaults.keys(), *cls._clients.keys()})
-
-    @classmethod
-    def _apply_client_defaults(cls, provider: str, config: LLMClientConfig) -> LLMClientConfig:
-        """Return a config copy enriched with provider defaults."""
-        defaults = cls._client_defaults.get(provider)
-        if defaults is None:
-            return config
-        values = dict(config.__dict__)
-        for key, value in defaults.items():
-            if values.get(key) in (None, ""):
-                values[key] = value
-        return LLMClientConfig(**values)
+        """List explicitly registered provider names."""
+        return sorted(cls._clients.keys())
 
     @classmethod
     def _normalize_provider(cls, value: object) -> str:
@@ -75,18 +53,9 @@ class LLMClientFactory:
 
     @classmethod
     def _resolve(cls, provider: str) -> type[LLMClient]:
-        """Resolve a provider client class, importing built-ins lazily."""
+        """Resolve a provider client class."""
         client_class = cls._clients.get(provider)
         if client_class is not None:
             return client_class
-
-        import_target = cls._client_imports.get(provider)
-        if import_target is None:
-            available = cls.available_providers()
-            raise LLMConfigError(f"Unknown llm provider: {provider}. Available: {available}")
-
-        module_name, class_name = import_target
-        module = import_module(module_name)
-        client_class = cast(type[LLMClient], getattr(module, class_name))
-        cls._clients[provider] = client_class
-        return client_class
+        available = cls.available_providers()
+        raise LLMConfigError(f"Unknown llm provider: {provider}. Available: {available}")

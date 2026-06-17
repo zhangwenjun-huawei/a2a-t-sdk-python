@@ -124,10 +124,16 @@ class LLMClientFactoryTest(unittest.TestCase):
         with self.assertRaises(LLMConfigError):
             LLMClientFactory.create("missing", build_config("missing"))
 
-    def test_available_providers_includes_builtins_and_custom_clients(self) -> None:
+    def test_available_providers_lists_registered_clients_only(self) -> None:
         from a2a_t.llm.factory import LLMClientFactory
 
         LLMClientFactory.register("custom", CustomClient)
 
         self.assertIn("custom", LLMClientFactory.available_providers())
-        self.assertIn("deepseek", LLMClientFactory.available_providers())
+        self.assertNotIn("deepseek", LLMClientFactory.available_providers())
+
+    def test_deepseek_must_be_registered_explicitly(self) -> None:
+        from a2a_t.llm.factory import LLMClientFactory
+
+        with self.assertRaises(LLMConfigError):
+            LLMClientFactory.create("deepseek", build_config("deepseek"))
