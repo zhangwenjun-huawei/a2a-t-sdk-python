@@ -55,16 +55,14 @@ class OpenAIClientTest(unittest.TestCase):
 
         self.assertIsInstance(client, OpenAIClient)
         self.assertIsInstance(client, LLMClient)
-        openai_cls.assert_called_once_with(
-            api_key="deepseek-key",
-            base_url="https://api.openai.com/v1",
-            timeout=None,
-        )
+        openai_cls.assert_not_called()
 
     @patch("a2a_t.llm.providers.openai.OpenAI")
-    def test_factory_rejects_openai_client_without_base_url(self, openai_cls: Mock) -> None:
+    def test_factory_allows_openai_client_without_base_url_until_invocation(self, openai_cls: Mock) -> None:
+        client = LLMClientFactory.create("openai", build_config(provider="openai"))
+
         with self.assertRaisesRegex(LLMConfigError, "base_url"):
-            LLMClientFactory.create("openai", build_config(provider="openai"))
+            client.structured(messages=[{"role": "user", "content": "extract"}], json_schema={"type": "object"})
 
         openai_cls.assert_not_called()
 

@@ -25,16 +25,22 @@ class OpenAIClient(LLMClient):
     def __init__(self, config: LLMClientConfig, logger: Any | None = None) -> None:
         if not config.api_key.strip():
             raise LLMConfigError(f"{config.provider} client requires a non-empty api_key")
-        if not config.base_url:
-            raise LLMConfigError(f"{config.provider} client requires a non-empty base_url")
         self._config = config
         self._logger = logger
+        self._client: Any | None = None
+
+    def _get_client(self) -> Any:
+        if self._client is not None:
+            return self._client
+        if not self._config.base_url:
+            raise LLMConfigError(f"{self._config.provider} client requires a non-empty base_url")
         client_options: dict[str, Any] = {
-            "api_key": config.api_key,
-            "timeout": config.timeout_seconds,
-            "base_url": config.base_url,
+            "api_key": self._config.api_key,
+            "timeout": self._config.timeout_seconds,
+            "base_url": self._config.base_url,
         }
         self._client = OpenAI(**client_options)
+        return self._client
 
     def structured(
         self,
@@ -52,7 +58,9 @@ class OpenAIClient(LLMClient):
             max_tokens=max_tokens,
         )
         try:
-            raw_response = self._client.chat.completions.create(**payload)
+            raw_response = self._get_client().chat.completions.create(**payload)
+        except LLMConfigError:
+            raise
         except Exception as exc:  # pragma: no cover - provider failure path
             raise LLMRuntimeError(f"{self._config.provider} invocation failed: {exc}") from exc
         return self._parse_response(raw_response)
