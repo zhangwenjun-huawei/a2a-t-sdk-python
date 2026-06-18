@@ -9,6 +9,7 @@ from openai import OpenAI
 
 from a2a_t.llm.errors import LLMConfigError, LLMRuntimeError
 from a2a_t.llm.models import LLMClientConfig, LLMResponse
+from a2a_t.llm.provider import LLMClient
 
 _JSON_MODE_INSTRUCTION_DEFAULT = (
     "Return a valid JSON object string. "
@@ -18,7 +19,7 @@ _JSON_MODE_INSTRUCTION_DEFAULT = (
 )
 
 
-class OpenAICompatibleClient:
+class OpenAIClient(LLMClient):
     """LLM client for providers exposing an OpenAI-compatible chat API."""
 
     def __init__(self, config: LLMClientConfig, logger: Any | None = None) -> None:
@@ -26,11 +27,20 @@ class OpenAICompatibleClient:
             raise LLMConfigError(f"{config.provider} client requires a non-empty api_key")
         self._config = config
         self._logger = logger
-        self._client = OpenAI(
-            api_key=config.api_key,
-            base_url=config.base_url,
-            timeout=config.timeout_seconds,
-        )
+        self._client: Any | None = None
+
+    def _get_client(self) -> Any:
+        if self._client is not None:
+            return self._client
+        if not self._config.base_url:
+            raise LLMConfigError(f"{self._config.provider} client requires a non-empty base_url")
+        client_options: dict[str, Any] = {
+            "api_key": self._config.api_key,
+            "timeout": self._config.timeout_seconds,
+            "base_url": self._config.base_url,
+        }
+        self._client = OpenAI(**client_options)
+        return self._client
 
     def structured(
         self,
@@ -48,7 +58,9 @@ class OpenAICompatibleClient:
             max_tokens=max_tokens,
         )
         try:
-            raw_response = self._client.chat.completions.create(**payload)
+            raw_response = self._get_client().chat.completions.create(**payload)
+        except LLMConfigError:
+            raise
         except Exception as exc:  # pragma: no cover - provider failure path
             raise LLMRuntimeError(f"{self._config.provider} invocation failed: {exc}") from exc
         return self._parse_response(raw_response)

@@ -7,6 +7,7 @@ from a2a_t.llm.errors import LLMConfigError, LLMError, LLMRuntimeError
 from a2a_t.llm.factory import LLMClientFactory
 from a2a_t.llm.models import LLMClientConfig, LLMResponse
 from a2a_t.llm.provider import LLMClient
+from a2a_t.llm.providers.openai import OpenAIClient
 
 __all__ = [
     "LLMClient",
@@ -17,4 +18,5 @@ __all__ = [
     "LLMError",
     "LLMResponse",
     "LLMRuntimeError",
+    "OpenAIClient",
 ]

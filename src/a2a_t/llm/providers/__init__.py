@@ -2,4 +2,6 @@
 
 from __future__ import annotations
 
-__all__: list[str] = []
+from a2a_t.llm.providers.openai import OpenAIClient
+
+__all__ = ["OpenAIClient"]

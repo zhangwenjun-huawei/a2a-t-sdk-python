@@ -19,6 +19,7 @@ class LLMPublicExportsTest(unittest.TestCase):
         from a2a_t.llm.factory import LLMClientFactory
         from a2a_t.llm.models import LLMClientConfig, LLMResponse
         from a2a_t.llm.provider import LLMClient
+        from a2a_t.llm.providers.openai import OpenAIClient
 
         self.assertIs(llm.LLMClient, LLMClient)
         self.assertIs(llm.LLMClientFactory, LLMClientFactory)
@@ -28,6 +29,7 @@ class LLMPublicExportsTest(unittest.TestCase):
         self.assertIs(llm.LLMError, LLMError)
         self.assertIs(llm.LLMConfigError, LLMConfigError)
         self.assertIs(llm.LLMRuntimeError, LLMRuntimeError)
+        self.assertIs(llm.OpenAIClient, OpenAIClient)
 
     def test_does_not_export_legacy_adapter_or_composed_components(self) -> None:
         import a2a_t.llm as llm
