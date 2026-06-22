@@ -49,7 +49,7 @@ class FakeOrchestrator:
         type(self).last_kwargs = dict(kwargs)
 
     def start_negotiation(self, input: object) -> dict[str, object]:
-        return {"https://github.com/a2aproject/telecommunication/extensions/DATA-NEGOTIATION-T/v1": {"role": "fake"}}
+        return {"https://projects.tmforum.org/a2aproject/telecommunication/extensions/DATA-NEGOTIATION-T/v1": {"role": "fake"}}
 
 
 class FakeStoreFactory:
@@ -106,9 +106,9 @@ class NegotiationOrchestratorBuilderTest(unittest.TestCase):
             )
         )
 
-        self.assertIn("https://github.com/a2aproject/telecommunication/extensions/NEGOTIATION-T", result)
+        self.assertIn("https://projects.tmforum.org/a2aproject/telecommunication/extensions/NEGOTIATION-T", result)
         self.assertEqual(
-            result["https://github.com/a2aproject/telecommunication/extensions/DATA-NEGOTIATION-T/v1"]["role"],
+            result["https://projects.tmforum.org/a2aproject/telecommunication/extensions/DATA-NEGOTIATION-T/v1"]["role"],
             "client",
         )
         self.assertEqual(len(store_factory.calls), 1)
@@ -138,9 +138,9 @@ class NegotiationOrchestratorBuilderTest(unittest.TestCase):
             )
         )
 
-        self.assertIn("https://github.com/a2aproject/telecommunication/extensions/NEGOTIATION-T", result)
+        self.assertIn("https://projects.tmforum.org/a2aproject/telecommunication/extensions/NEGOTIATION-T", result)
         self.assertEqual(
-            result["https://github.com/a2aproject/telecommunication/extensions/DATA-NEGOTIATION-T/v1"]["role"],
+            result["https://projects.tmforum.org/a2aproject/telecommunication/extensions/DATA-NEGOTIATION-T/v1"]["role"],
             "server",
         )
         self.assertEqual(len(prompt_compliance_builder.calls), 1)
