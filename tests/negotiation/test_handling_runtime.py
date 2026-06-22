@@ -118,11 +118,11 @@ class NegotiationHandlingRuntimeTest(unittest.TestCase):
         )
 
         self.assertEqual(
-            payload["https://github.com/a2aproject/telecommunication/extensions/DATA-NEGOTIATION-T/v1"]["round"],
+            payload["https://projects.tmforum.org/a2aproject/telecommunication/extensions/DATA-NEGOTIATION-T/v1"]["round"],
             2,
         )
         self.assertEqual(
-            payload["https://github.com/a2aproject/telecommunication/extensions/NEGOTIATION-T"],
+            payload["https://projects.tmforum.org/a2aproject/telecommunication/extensions/NEGOTIATION-T"],
             "Here is the clarification.",
         )
 
