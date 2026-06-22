@@ -1,8 +1,44 @@
-# a2a-t-sdk
+<!--
+Copyright (c) 2026 Huawei Technologies Co., Ltd.
+All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+
+   Licensed under the Apache License, Version 2.0 (the "License"); you may
+   not use this file except in compliance with the License. You may obtain
+   a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+   WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+   License for the specific language governing permissions and limitations
+   under the License.
+-->
+
+# a2a-t-sdk-python
+
+<p align="center">
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/python-3.12+-blue.svg" alt="Python"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-green.svg" alt="License"></a>
+</p>
+
+<p align="center">
+  <strong>Python SDK used to generate task prompts and handle task negotiation flows based on the A2A-T protocol.</strong>
+  <br>
+  基于A2A-T协议用于生成任务提示词并处理任务协商流程的Python SDK。
+</p>
+
+<p align="center">
+  <a href="./README_zh.md">中文</a>
+</p>
+
+---
 
 ## Project Overview
 
-`a2a-t-sdk` is a Python SDK targeting telecom scenarios, used to generate task prompts and handle task negotiation flows.
+`a2a-t-sdk-python` is a Python SDK targeting telecom scenarios, used to generate task prompts and handle task negotiation flows.
 
 This SDK is primarily aimed at two types of users:
 
